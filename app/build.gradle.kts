@@ -16,6 +16,9 @@ android {
         targetSdk     = 34
         versionCode   = 1
         versionName   = "1.0"
+        manifestPlaceholders += mapOf(
+            "MAPS_API_KEY" to (project.findProperty("MAPS_API_KEY")?.toString() ?: "")
+        )
     }
 
     buildFeatures {
