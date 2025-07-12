@@ -1,5 +1,6 @@
 package com.example.stalblet
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -85,6 +86,8 @@ class AddSubletFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == PICK_IMAGES && resultCode == Activity.RESULT_OK && data != null) {
             selectedUris.clear()
