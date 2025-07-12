@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">stalblet</string>
+    <string name="action_button">action_button</string>
 </resources>
