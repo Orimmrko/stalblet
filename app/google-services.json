@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "387543343596",
+    "project_id": "stalblet",
+    "storage_bucket": "stalblet.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387543343596:android:cbdc70a22bcf7b94ede0c9",
+        "android_client_info": {
+          "package_name": "com.example.stalblet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSfxfPHKxb3rsXNYm_OqFp-unkku7JJOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387543343596:android:43acbcbd42234e09ede0c9",
+        "android_client_info": {
+          "package_name": "com.example.subletapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSfxfPHKxb3rsXNYm_OqFp-unkku7JJOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

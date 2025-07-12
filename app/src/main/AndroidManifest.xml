@@ -8,7 +8,7 @@
         android:label="@string/app_name">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCycJJVQVbcQ2-yTpYhUHLRyLpyLZ7ROy4"/>
+            android:value="__YOUR_API_KEY_HERE__"/>
         <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
