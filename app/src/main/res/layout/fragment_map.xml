@@ -1,0 +1,34 @@
+<!-- File: app/src/main/res/layout/fragment_map.xml -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Google Map fragment -->
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- Search bar -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:queryHint="Search location…"
+        app:iconifiedByDefault="false"
+        android:background="@drawable/search_view_background"/>
+
+    <!-- Add Sublet FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Add sublet"
+        app:srcCompat="@drawable/ic_add"
+        app:layout_anchorGravity="bottom|end"/>
+</FrameLayout>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <EditText
+            android:id="@+id/et_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Title"
+            android:inputType="textCapWords" />
+
+        <!-- Description -->
+        <EditText
+            android:id="@+id/et_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:inputType="textMultiLine"
+            android:lines="3"
+            android:gravity="top" />
+
+        <!-- Latitude -->
+        <EditText
+            android:id="@+id/et_latitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Latitude"
+            android:inputType="numberDecimal" />
+
+        <!-- Longitude -->
+        <EditText
+            android:id="@+id/et_longitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Longitude"
+            android:inputType="numberDecimal" />
+
+        <!-- Pick photos button -->
+        <Button
+            android:id="@+id/btn_pick_photos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pick Photos"
+            android:layout_marginTop="16dp" />
+
+        <!-- Selected photo count -->
+        <TextView
+            android:id="@+id/tv_photo_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 photo(s) selected"
+            android:layout_marginTop="8dp" />
+
+        <!-- Submit button -->
+        <Button
+            android:id="@+id/btn_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Submit Listing"
+            android:layout_marginTop="24dp" />
+
+    </LinearLayout>
+</ScrollView>

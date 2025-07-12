@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:text="Title" />
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Description" />
+
+        <!-- Optional: a RecyclerView or ViewPager2 for images -->
+        <!-- <androidx.recyclerview.widget.RecyclerView
+             android:id="@+id/rvImages"
+             ... /> -->
+
+        <Button
+            android:id="@+id/btnChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat about this sublet"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>
