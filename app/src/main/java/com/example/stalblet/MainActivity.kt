@@ -1,85 +1,78 @@
-
 package com.example.stalblet
+
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentManager
 import com.firebase.ui.auth.AuthUI
-import com.firebase.ui.auth.IdpResponse
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
-import com.example.stalblet.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var auth: FirebaseAuth
-    private val RC_SIGN_IN = 123
+    private val RC_SIGN_IN = 1234
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // 1) Explicitly initialize Firebase *in this Activity*
-        FirebaseApp.initializeApp(this)
-
-        // 2) Only now do we get Auth
-        auth = FirebaseAuth.getInstance()
-
         setContentView(R.layout.activity_main)
-        findViewById<FloatingActionButton>(R.id.fab_add)
-            .setOnClickListener {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.auth_container, AddSubletFragment.newInstance())
-                    .addToBackStack(null)
-                    .commit()}
+        // If you have a Toolbar:
+        // setSupportActionBar(findViewById(R.id.toolbar))
+    }
 
-        if (auth.currentUser == null) {
-            startSignInFlow()
+    override fun onStart() {
+        super.onStart()
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            startSignIn()
         } else {
-            launchMapScreen()
+            showMapFragment()
         }
     }
 
-    private fun startSignInFlow() {
+    private fun startSignIn() {
         val providers = listOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
             AuthUI.IdpConfig.PhoneBuilder().build()
         )
-        val signInIntent = AuthUI.getInstance()
+        val intent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
-            .setIsSmartLockEnabled(false)    // ← disable Smart Lock/hint picker
+            .setIsSmartLockEnabled(false, false)
             .build()
-        startActivityForResult(signInIntent, RC_SIGN_IN)
+        startActivityForResult(intent, RC_SIGN_IN)
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
-            val response = IdpResponse.fromResultIntent(data)
             if (resultCode == RESULT_OK) {
-                Toast.makeText(
-                    this,
-                    "Welcome, ${auth.currentUser?.displayName
-                        ?: auth.currentUser?.phoneNumber}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                launchMapScreen()
+                // Signed in
+                showMapFragment()
             } else {
-                Toast.makeText(
-                    this,
-                    "Sign-in failed: ${response?.error?.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
+                // Sign-in canceled or failed; exit or re-prompt
+                finish()
             }
         }
     }
 
-    private fun launchMapScreen() {
+    private fun showMapFragment() {
+        // Clear back stack
+        supportFragmentManager.popBackStack(
+            null,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE
+        )
         supportFragmentManager.beginTransaction()
-            .replace(R.id.auth_container, MapFragment.newInstance())
+            .replace(R.id.auth_container, MapFragment())
             .commit()
+        findViewById<FloatingActionButton>(R.id.fab_add)
+            .apply {
+                show()  // make sure it’s visible
+                setOnClickListener {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.auth_container, AddSubletFragment())
+                        .addToBackStack(null)
+                        .commit()
+                }
+            }
     }
 }

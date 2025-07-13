@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">stalblet</string>
     <string name="action_button">action_button</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="address_e_g_1600_amphitheatre_pkwy_mountain_view">Address (e.g. 1600 Amphitheatre Pkwy, Mountain View)</string>
+    <string name="pick_photos">Pick Photos</string>
+    <string name="_0_photo_s_selected">0 photo(s) selected</string>
+    <string name="submit_listing">Submit Listing</string>
 </resources>

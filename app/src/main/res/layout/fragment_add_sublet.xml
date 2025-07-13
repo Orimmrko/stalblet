@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -11,61 +12,71 @@
 
         <!-- Title -->
         <EditText
-            android:id="@+id/et_title"
+            android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Title"
-            android:inputType="textCapWords" />
+            android:hint="@string/title" />
 
         <!-- Description -->
         <EditText
-            android:id="@+id/et_description"
+            android:id="@+id/etDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description"
-            android:inputType="textMultiLine"
-            android:lines="3"
-            android:gravity="top" />
+            android:hint="@string/description"
+            android:layout_marginTop="8dp" />
 
-        <!-- Latitude -->
         <EditText
-            android:id="@+id/et_latitude"
+            android:id="@+id/etAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Latitude"
-            android:inputType="numberDecimal" />
-
-        <!-- Longitude -->
-        <EditText
-            android:id="@+id/et_longitude"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Longitude"
-            android:inputType="numberDecimal" />
+            android:hint="@string/address_e_g_1600_amphitheatre_pkwy_mountain_view"
+            android:inputType="textPostalAddress"/>
 
         <!-- Pick photos button -->
         <Button
-            android:id="@+id/btn_pick_photos"
+            android:id="@+id/btnPickPhotos"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pick Photos"
+            android:text="@string/pick_photos"
             android:layout_marginTop="16dp" />
 
-        <!-- Selected photo count -->
-        <TextView
-            android:id="@+id/tv_photo_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 photo(s) selected"
-            android:layout_marginTop="8dp" />
-
-        <!-- Submit button -->
-        <Button
-            android:id="@+id/btn_submit"
+        <!-- Horizontal strip for image previews -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Submit Listing"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:id="@+id/previewContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <!-- Photo count -->
+        <TextView
+            android:id="@+id/tvPhotoCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_0_photo_s_selected"
+            android:layout_marginTop="8dp" />
+
+        <!-- Submit listing -->
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/submit_listing"
             android:layout_marginTop="24dp" />
+
+        <!-- Progress indicator -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp" />
 
     </LinearLayout>
 </ScrollView>

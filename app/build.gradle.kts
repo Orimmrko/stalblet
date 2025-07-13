@@ -1,11 +1,17 @@
 // File: app/build.gradle.kts
-
+import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
+import java.util.Properties
+import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-
 }
 
+val localProps = Properties().apply {
+    FileInputStream(rootProject.file("local.properties")).use { load(it) }
+}
+val mapsKey: String = localProps.getProperty("MAPS_API_KEY")
 android {
     namespace   = "com.example.stalblet"
     compileSdk  = 34
@@ -16,13 +22,16 @@ android {
         targetSdk     = 34
         versionCode   = 1
         versionName   = "1.0"
-        manifestPlaceholders += mapOf(
-            "MAPS_API_KEY" to (project.findProperty("MAPS_API_KEY")?.toString() ?: "")
-        )
+        // Make the key available in BuildConfig.MAPS_API_KEY
+        buildConfigField("String", "MAPS_API_KEY", "\"$mapsKey\"")
+
+        // Also inject it into your manifest for the meta-data
+        manifestPlaceholders["MAPS_API_KEY"] = mapsKey
     }
 
     buildFeatures {
         viewBinding = true
+        buildConfig  = true
     }
 
     compileOptions {
@@ -37,6 +46,8 @@ android {
 dependencies {
     // Unit tests
     testImplementation("junit:junit:4.13.2")
+
+    implementation("com.squareup.picasso:picasso:2.8")
 
     // Instrumented Android tests
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -66,5 +77,20 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.0")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+
+    implementation("com.google.android.libraries.places:places:2.7.0")
 }
 apply(plugin = "com.google.gms.google-services")
+tasks.withType<KotlinCompile>()
+    .configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+        }
+    }
+
+tasks.withType<KaptGenerateStubsTask>()
+    .configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+        }
+    }
