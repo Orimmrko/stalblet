@@ -27,7 +27,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_map, container, false)
     }
 
@@ -55,6 +54,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
         })
     }
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
@@ -87,18 +87,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 }
             }
 
-        // Handle marker taps by reading the doc ID from tag
+        // Handle marker taps by launching SubletDetailFragment via newInstance()
         map.setOnMarkerClickListener { marker ->
             val docId = marker.tag as? String
-            if (docId != null) {
+            if (!docId.isNullOrEmpty()) {
                 parentFragmentManager.beginTransaction()
                     .replace(
                         R.id.auth_container,
-                        SubletDetailFragment().apply {
-                            arguments = Bundle().apply {
-                                putString("subletId", docId)
-                            }
-                        }
+                        SubletDetailFragment.newInstance(docId)
                     )
                     .addToBackStack(null)
                     .commit()
@@ -106,6 +102,4 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             true
         }
     }
-
-
 }

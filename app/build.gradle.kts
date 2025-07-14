@@ -79,6 +79,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 
     implementation("com.google.android.libraries.places:places:2.7.0")
+
+
 }
 apply(plugin = "com.google.gms.google-services")
 tasks.withType<KotlinCompile>()

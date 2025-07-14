@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">stalblet</string>
+    <string name="app_name" translatable="false">stalblet</string>
     <string name="action_button">action_button</string>
     <string name="title">Title</string>
     <string name="description">Description</string>
@@ -7,4 +7,5 @@
     <string name="pick_photos">Pick Photos</string>
     <string name="_0_photo_s_selected">0 photo(s) selected</string>
     <string name="submit_listing">Submit Listing</string>
+    <string name="add_new_sublet">Add_New_Sublet</string>
 </resources>

@@ -1,137 +1,138 @@
 package com.example.stalblet
 
+import MessagesAdapter
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.stalblet.databinding.FragmentChatBinding
+import androidx.recyclerview.widget.RecyclerView
+import com.example.stalblet.model.ChatMessage
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
-data class ChatMessage(
-    val senderId: String = "",
-    val text: String = "",
-    val timestamp: Timestamp = Timestamp.now()
-)
+class ChatFragment : Fragment(R.layout.fragment_chat) {
+    private lateinit var subletId: String
+    private lateinit var ownerId: String
 
-class ChatFragment : Fragment() {
+    // Firestore references
+    private val db by lazy { FirebaseFirestore.getInstance() }
+    private lateinit var messagesRef: CollectionReference
 
     companion object {
-        private const val ARG_SUBLET_ID = "sublet_id"
-        fun newInstance(subletId: String): ChatFragment {
-            return ChatFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_SUBLET_ID, subletId)
-                }
+        private const val TAG = "ChatFragment"
+        private const val ARG_SUBLET_ID = "arg_sublet_id"
+        private const val ARG_OWNER_ID  = "arg_owner_id"
+
+        /** Use this to instantiate the fragment */
+        fun newInstance(subletId: String, ownerId: String) = ChatFragment().apply {
+            arguments = Bundle().apply {
+                putString(ARG_SUBLET_ID, subletId)
+                putString(ARG_OWNER_ID, ownerId)
             }
         }
     }
-
-    private var _binding: FragmentChatBinding? = null
-    private val binding get() = _binding!!
-    private val db   = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private var subletId: String = ""
-
-    private lateinit var adapter: MessagesAdapter
-    private lateinit var messagesCol: CollectionReference
-    private var listener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        subletId = requireArguments().getString(ARG_SUBLET_ID)!!
-        messagesCol = db.collection("chats")
+        arguments?.let {
+            subletId = it.getString(ARG_SUBLET_ID)
+                ?: throw IllegalStateException("ChatFragment missing subletId")
+            ownerId = it.getString(ARG_OWNER_ID)
+                ?: throw IllegalStateException("ChatFragment missing ownerId")
+        } ?: throw IllegalStateException("ChatFragment requires arguments")
+
+        // Point at the right Firestore location
+        messagesRef = db.collection("sublets")
             .document(subletId)
-            .collection("messages")
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentChatBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        listener?.remove()
-        _binding = null
+            .collection("chat")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // RecyclerView setup
-        adapter = MessagesAdapter(auth.currentUser?.uid ?: "")
-        binding.rvMessages.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvMessages.adapter = adapter
+        super.onViewCreated(view, savedInstanceState)
 
-        // Listen for new messages
-        listener = messagesCol
+        // 1) Find your views
+        val rvMessages      = view.findViewById<RecyclerView>(R.id.rvMessages)
+        val etMessageInput  = view.findViewById<EditText>(R.id.etMessageInput)
+        val btnSend         = view.findViewById<Button>(R.id.btnSend)
+
+        // 2) Prepare current user and adapter
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val adapter = MessagesAdapter(emptyList(), currentUserId)
+        rvMessages.layoutManager = LinearLayoutManager(requireContext())
+        rvMessages.adapter       = adapter
+
+        // 3) Listen for real-time updates
+        messagesRef
             .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snaps, err ->
-                if (err != null || snaps == null) return@addSnapshotListener
-                val msgs = snaps.toObjects(ChatMessage::class.java)
-                adapter.submitList(msgs)
-                binding.rvMessages.scrollToPosition(msgs.size - 1)
-            }
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    Log.e(TAG, "Chat listener failed", error)
+                    return@addSnapshotListener
+                }
+                val msgs = snapshots
+                    ?.documents
+                    ?.mapNotNull { doc ->
+                        doc.toObject(ChatMessage::class.java)?.apply {
+                            id = doc.id
+                        }
+                    } ?: emptyList()
 
-        // Send button
-        binding.btnSend.setOnClickListener {
-            val text = binding.etMessageInput.text.toString().trim()
-            if (text.isNotEmpty()) {
-                val msg = ChatMessage(
-                    senderId = auth.currentUser?.uid ?: "",
-                    text     = text,
-                    timestamp= Timestamp.now()
-                )
-                messagesCol.add(msg)
-                binding.etMessageInput.text?.clear()
+                adapter.updateData(msgs)
+                if (msgs.isNotEmpty()) {
+                    rvMessages.scrollToPosition(msgs.lastIndex)
+                }
             }
+        var subletTitle = ""
+        db.collection("sublets")
+            .document(subletId)
+            .get()
+            .addOnSuccessListener { doc ->
+                subletTitle = doc.getString("title") ?: ""
+            }
+        // 4) Wire up the Send button
+        btnSend.setOnClickListener {
+            val text = etMessageInput.text.toString().trim()
+            if (text.isEmpty()) return@setOnClickListener
+
+            val message = ChatMessage(
+                senderId  = currentUserId,
+                text      = text,
+                timestamp = Timestamp.now()
+            )
+            messagesRef.add(message)
+                .addOnSuccessListener {
+                    etMessageInput.text.clear()
+                    val convRef = db.collection("conversations").document(subletId)
+                    convRef.set(
+                        mapOf(
+                            "subletId"     to subletId,
+                            "subletTitle"  to subletTitle,
+                            "participants" to listOf(currentUserId, ownerId),
+                            "lastMessage"  to message.text,
+                            "lastTimestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+                        ),
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
+
+                }
+
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to send message", e)
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to send message",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
         }
     }
 
-    // Simple ListAdapter for ChatMessage
-    private class MessagesAdapter(
-        private val myUid: String
-    ) : androidx.recyclerview.widget.ListAdapter<ChatMessage, MessagesAdapter.VH>(
-        object : androidx.recyclerview.widget.DiffUtil.ItemCallback<ChatMessage>() {
-            override fun areItemsTheSame(a: ChatMessage, b: ChatMessage) =
-                a.timestamp == b.timestamp && a.senderId == b.senderId
-
-            override fun areContentsTheSame(a: ChatMessage, b: ChatMessage) =
-                a == b
-        }
-    ) {
-        inner class VH(val binding: com.example.stalblet.databinding.ItemMessageBinding)
-            : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val b = com.example.stalblet.databinding.ItemMessageBinding
-                .inflate(LayoutInflater.from(parent.context), parent, false)
-            return VH(b)
-        }
-
-        override fun onBindViewHolder(holder: VH, position: Int) {
-            val msg = getItem(position)
-            holder.binding.tvMessage.text = msg.text
-            // Align left/right based on sender
-            val isMe = msg.senderId == myUid
-            holder.binding.tvMessageContainer
-                .setBackgroundResource(
-                    if (isMe) R.drawable.bg_message_outgoing else R.drawable.bg_message_incoming
-                )
-            val params = holder.binding.tvMessage.layoutParams as ViewGroup.MarginLayoutParams
-            if (isMe) {
-                params.marginStart = 64
-                params.marginEnd = 0
-            } else {
-                params.marginStart = 0
-                params.marginEnd = 64
-            }
-            holder.binding.tvMessage.layoutParams = params
-        }
-    }
 }
