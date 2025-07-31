@@ -8,4 +8,22 @@
     <string name="_0_photo_s_selected">0 photo(s) selected</string>
     <string name="submit_listing">Submit Listing</string>
     <string name="add_new_sublet">Add_New_Sublet</string>
+    <string name="chats">Chats</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="my_listings">My Listings</string>
+    <string name="map">Map</string>
+    <string name="start_date">Start date</string>
+    <string name="end_date">End date</string>
+    <string name="map_icon">Map</string>
+    <string name="chats_icon">Chats</string>
+    <string name="my_listings_icon">My Listings</string>
+    <string name="add_sublet_icon">Add Sublet</string>
+    <string name="sign_out_icon">Sign Out</string>
+    <string name="main_sublet_photo">Main sublet photo</string>
+    <string name="sublet_title">Sublet Title</string>
+    <string name="sublet_description_goes_here">Sublet description goes here.</string>
+    <string name="visible_on_map">Visible on map</string>
+    <string name="chat_with_owner">Chat with Owner</string>
+    <string name="edit_dates">Edit dates</string>
+    <string name="visible_on_map_switch">Visible on map</string>
 </resources>

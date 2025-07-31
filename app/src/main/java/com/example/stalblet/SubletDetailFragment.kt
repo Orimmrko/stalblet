@@ -1,97 +1,143 @@
 package com.example.stalblet
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Switch
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
+import com.example.stalblet.model.Sublet
+import com.google.firebase.auth.FirebaseAuth
 
-class SubletDetailFragment : Fragment() {
-
-    private var ownerId: String? = null
-
+class SubletDetailFragment : Fragment(R.layout.fragment_sublet_detail) {
     companion object {
         private const val ARG_SUBLET_ID = "subletId"
-
-        /** Instantiate with the ID of the sublet to display */
-        fun newInstance(subletId: String): SubletDetailFragment =
-            SubletDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_SUBLET_ID, subletId)
-                }
-            }
+        fun newInstance(subletId: String) = SubletDetailFragment().apply {
+            arguments = Bundle().apply { putString(ARG_SUBLET_ID, subletId) }
+        }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_sublet_detail, container, false)
-    }
+    private val db = FirebaseFirestore.getInstance()
+    private lateinit var subletId: String
+    private var ownerId: String? = null
 
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        subletId = arguments?.getString(ARG_SUBLET_ID)
+            ?: throw IllegalStateException("Missing subletId")
 
-        val subletId = arguments?.getString(ARG_SUBLET_ID)
-        if (subletId.isNullOrEmpty()) {
-            Log.e("SubletDetail", "No subletId provided")
-            return
-        }
+        // Find our views
+        val tvTitle      = view.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc       = view.findViewById<TextView>(R.id.tvDescription)
+        val ivPhoto      = view.findViewById<ImageView>(R.id.ivMainPhoto)
+        val btnChat      = view.findViewById<Button>(R.id.btnChatOwner)
+        val switchVis    = view.findViewById<Switch>(R.id.switchVisibility)
 
-        FirebaseFirestore.getInstance()
-            .collection("sublets")
+        // Load the document
+        db.collection("sublets")
             .document(subletId)
             .get()
             .addOnSuccessListener { doc ->
-                if (doc != null && doc.exists()) {
-                    val title     = doc.getString("title") ?: ""
-                    val desc      = doc.getString("description") ?: ""
-                    val imageUrls = doc.get("imageUrls") as? List<String> ?: emptyList()
-                    ownerId       = doc.getString("ownerId")
-
-                    // Title with fallback
-                    view.findViewById<TextView>(R.id.tvTitle).text =
-                        if (title.isBlank()) "Untitled" else title
-
-                    // Description with placeholder
-                    view.findViewById<TextView>(R.id.tvDescription).text =
-                        if (desc.isBlank()) "No description provided" else desc
-
-                    // Load main photo if available
-                    if (imageUrls.isNotEmpty()) {
-                        Picasso.get()
-                            .load(imageUrls[0])
-                            .into(view.findViewById<ImageView>(R.id.ivMainPhoto))
+                if (!doc.exists()) {
+                    Toast.makeText(requireContext(),
+                        "This listing no longer exists", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                    return@addOnSuccessListener
+                }
+                val sublet = doc.toObject(Sublet::class.java)!!
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                val isOwner = currentUserId == sublet.ownerId
+                switchVis.isVisible = isOwner
+                if (isOwner) {
+                    // Owner can toggle
+                    switchVis.isChecked = sublet.visible
+                    switchVis.setOnCheckedChangeListener { _, isChecked ->
+                        db.collection("sublets")
+                            .document(subletId)
+                            .update("visible", isChecked)
+                            .addOnSuccessListener {
+                                Toast.makeText(
+                                    requireContext(),
+                                    if (isChecked) "Listing visible" else "Listing hidden",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("SubletDetail", "Visibility update failed", e)
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Could not update visibility",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                switchVis.isChecked = !isChecked
+                            }
                     }
                 } else {
-                    Log.e("SubletDetail", "Document $subletId does not exist")
+                    // Not owner: always reflect the stored value, but disable interaction
+                    switchVis.isChecked = sublet.visible
+                    switchVis.isEnabled = false
+                }
+
+                // Populate UI
+                tvTitle.text = sublet.title.ifBlank { "Untitled" }
+                tvDesc.text  = sublet.description.ifBlank { "No description provided" }
+                ownerId      = sublet.ownerId
+
+                sublet.imageUrls.firstOrNull()?.let {
+                    Picasso.get().load(it).into(ivPhoto)
+                }
+
+
+                switchVis.isChecked = sublet.visible
+                switchVis.setOnCheckedChangeListener { _, isChecked ->
+                    db.collection("sublets")
+                        .document(subletId)
+                        .update("visible", isChecked)
+                        .addOnSuccessListener {
+                            Toast.makeText(
+                                requireContext(),
+                                if (isChecked) "Listing visible" else "Listing hidden",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("SubletDetail", "Visibility update failed", e)
+                            Toast.makeText(
+                                requireContext(),
+                                "Could not update visibility",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // revert switch
+                            switchVis.isChecked = !isChecked
+                        }
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("SubletDetail", "Error loading $subletId", e)
+                Log.e("SubletDetail", "Failed to load listing", e)
+                Toast.makeText(requireContext(),
+                    "Error loading listing", Toast.LENGTH_SHORT).show()
+                parentFragmentManager.popBackStack()
             }
 
-        // Chat button: only navigates once we have both IDs
-        view.findViewById<Button>(R.id.btnChatOwner)
-            .setOnClickListener {
-                if (subletId.isNotEmpty() && !ownerId.isNullOrEmpty()) {
-                    parentFragmentManager.beginTransaction()
-                        .replace(
-                            R.id.auth_container,
-                            ChatFragment.newInstance(subletId, ownerId!!)
-                        )
-                        .addToBackStack(null)
-                        .commit()
-                } else {
-                    Log.e("SubletDetail", "Missing subletId or ownerId, cannot start chat")
-                }
+        // Chat button unchanged…
+        btnChat.setOnClickListener {
+            ownerId?.let { oid ->
+                parentFragmentManager.beginTransaction()
+                    .replace(
+                        R.id.auth_container,
+                        ChatFragment.newInstance(subletId, oid)
+                    )
+                    .addToBackStack(null)
+                    .commit()
             }
+        }
     }
 }

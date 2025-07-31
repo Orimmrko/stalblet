@@ -2,8 +2,6 @@ package com.example.stalblet
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import com.firebase.ui.auth.AuthUI
@@ -26,10 +24,7 @@ class MainActivity : AppCompatActivity() {
         // 2) FAB logic (only show on MapFragment)
         fabAdd = findViewById(R.id.fab_add)
         fabAdd.setOnClickListener {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.auth_container, AddSubletFragment())
-                .addToBackStack(null)
-                .commit()
+            OptionsBottomSheet().show(supportFragmentManager, "OptionsSheet")
         }
         supportFragmentManager.addOnBackStackChangedListener {
             val curr = supportFragmentManager.findFragmentById(R.id.auth_container)
@@ -43,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         if (user == null) startSignIn() else showMapFragment()
     }
 
-    private fun startSignIn() {
+    fun startSignIn() {
         val providers = listOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
             AuthUI.IdpConfig.PhoneBuilder().build()
@@ -58,38 +53,16 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun showMapFragment() {
+    fun showMapFragment() {
         supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         supportFragmentManager.beginTransaction()
             .replace(R.id.auth_container, MapFragment())
             .commit()
     }
 
-    // ── Inflate the menu_main.xml into the toolbar ───────────────────────
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
 
-    // ── Handle toolbar item clicks ─────────────────────────────────────
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_chats -> {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.auth_container, ChatListFragment())
-                    .addToBackStack(null)
-                    .commit()
-                return true
-            }
-            R.id.action_sign_out -> {
-                signOut()
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
 
-    private fun signOut() {
+    fun signOut() {
         fabAdd.hide()
         AuthUI.getInstance().signOut(this)
             .addOnCompleteListener { startSignIn() }

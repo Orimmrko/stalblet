@@ -2,7 +2,6 @@ package com.example.stalblet
 
 import MessagesAdapter
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -57,46 +56,37 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1) Find your views
-        val rvMessages      = view.findViewById<RecyclerView>(R.id.rvMessages)
-        val etMessageInput  = view.findViewById<EditText>(R.id.etMessageInput)
-        val btnSend         = view.findViewById<Button>(R.id.btnSend)
+        // ─── 0) preload the sublet title ──────────────────────────────
+        var subletTitle = ""
+        val subletRef = db.collection("sublets").document(subletId)
+        subletRef.get().addOnSuccessListener { doc ->
+            if (doc.exists()) subletTitle = doc.getString("title") ?: ""
+        }
 
-        // 2) Prepare current user and adapter
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        // ─── 1) find views & adapter ─────────────────────────────────
+        val rvMessages     = view.findViewById<RecyclerView>(R.id.rvMessages)
+        val etMessageInput = view.findViewById<EditText>(R.id.etMessageInput)
+        val btnSend        = view.findViewById<Button>(R.id.btnSend)
+
+        val currentUserId = FirebaseAuth.getInstance().currentUser!!.uid
         val adapter = MessagesAdapter(emptyList(), currentUserId)
         rvMessages.layoutManager = LinearLayoutManager(requireContext())
         rvMessages.adapter       = adapter
 
-        // 3) Listen for real-time updates
+        // ─── 2) real-time chat listener ───────────────────────────────
         messagesRef
             .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, error ->
-                if (error != null) {
-                    Log.e(TAG, "Chat listener failed", error)
-                    return@addSnapshotListener
-                }
-                val msgs = snapshots
-                    ?.documents
+            .addSnapshotListener { snaps, err ->
+                if (err != null) return@addSnapshotListener
+                val msgs = snaps?.documents
                     ?.mapNotNull { doc ->
-                        doc.toObject(ChatMessage::class.java)?.apply {
-                            id = doc.id
-                        }
+                        doc.toObject(ChatMessage::class.java)?.apply { id = doc.id }
                     } ?: emptyList()
-
                 adapter.updateData(msgs)
-                if (msgs.isNotEmpty()) {
-                    rvMessages.scrollToPosition(msgs.lastIndex)
-                }
+                if (msgs.isNotEmpty()) rvMessages.scrollToPosition(msgs.lastIndex)
             }
-        var subletTitle = ""
-        db.collection("sublets")
-            .document(subletId)
-            .get()
-            .addOnSuccessListener { doc ->
-                subletTitle = doc.getString("title") ?: ""
-            }
-        // 4) Wire up the Send button
+
+        // ─── 3) send button ────────────────────────────────────────────
         btnSend.setOnClickListener {
             val text = etMessageInput.text.toString().trim()
             if (text.isEmpty()) return@setOnClickListener
@@ -109,29 +99,23 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             messagesRef.add(message)
                 .addOnSuccessListener {
                     etMessageInput.text.clear()
+
+                    // ─── Upsert the conversation summary ────────────────────
                     val convRef = db.collection("conversations").document(subletId)
                     convRef.set(
                         mapOf(
-                            "subletId"     to subletId,
-                            "subletTitle"  to subletTitle,
-                            "participants" to listOf(currentUserId, ownerId),
-                            "lastMessage"  to message.text,
+                            "subletId"      to subletId,
+                            "subletTitle"   to subletTitle,
+                            "participants"  to listOf(currentUserId, ownerId),
+                            "lastMessage"   to message.text,
                             "lastTimestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp()
                         ),
                         com.google.firebase.firestore.SetOptions.merge()
                     )
-
                 }
-
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Failed to send message", e)
-                    Toast.makeText(
-                        requireContext(),
-                        "Failed to send message",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Send failed", Toast.LENGTH_SHORT).show()
                 }
-
         }
     }
 

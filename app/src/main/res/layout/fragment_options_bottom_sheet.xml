@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <Button
+        android:id="@+id/btnOptionMap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_map"
+        android:text="@string/map_icon"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnOptionChats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_chat"
+        android:text="@string/chats_icon"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnOptionListings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_format_list_bulleted"
+        android:text="@string/my_listings_icon"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnOptionAdd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_add"
+        android:text="@string/add_sublet_icon"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnOptionSignOut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_logout"
+        android:text="@string/sign_out_icon"/>
+</LinearLayout>

@@ -15,6 +15,7 @@
             android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autofillHints="Name"
             android:hint="@string/title" />
 
         <!-- Description -->
@@ -22,6 +23,7 @@
             android:id="@+id/etDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autofillHints="Details about the sublet"
             android:hint="@string/description"
             android:layout_marginTop="8dp" />
 
@@ -29,8 +31,29 @@
             android:id="@+id/etAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autofillHints="Where is your sublet"
             android:hint="@string/address_e_g_1600_amphitheatre_pkwy_mountain_view"
             android:inputType="textPostalAddress"/>
+        <EditText
+            android:id="@+id/etStartDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="Sublet beginning date"
+            android:hint="@string/start_date"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginTop="8dp" />
+
+        <!-- End Date Picker -->
+        <EditText
+            android:id="@+id/etEndDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="Sublet end date"
+            android:hint="@string/end_date"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginTop="8dp" />
 
         <!-- Pick photos button -->
         <Button

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.stalblet.model.Sublet
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,6 +18,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.Date
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -71,21 +73,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 map.clear()
 
+                val now = Date()
                 snapshots?.forEach { doc ->
-                    val gp = doc.getGeoPoint("location") ?: return@forEach
-                    val title = doc.getString("title") ?: "No title"
-                    val pos = LatLng(gp.latitude, gp.longitude)
+                    // Safe‐cast so this returns a Sublet? and you can Elvis out if null
+                    val sublet = doc.toObject(Sublet::class.java)
+                    if (!sublet.visible) return@forEach
+                    // convert to Date
+                    val start = sublet.startDate.toDate()
+                    val end   = sublet.endDate.toDate()
 
-                    // 1) Add the marker
+                    if (start.after(now) || end.before(now)) {
+                        // not available today
+                        return@forEach
+                    }
+
+                    // available: add marker
+                    val gp     = sublet.location
+                    val pos    = LatLng(gp.latitude, gp.longitude)
                     val marker = map.addMarker(
-                        MarkerOptions()
-                            .position(pos)
-                            .title(title)
+                        MarkerOptions().position(pos).title(sublet.title)
                     )
-                    // 2) Tag it with the Firestore document ID
-                    marker?.tag = doc.id
+                    marker?.tag = sublet.id
                 }
             }
+
 
         // Handle marker taps by launching SubletDetailFragment via newInstance()
         map.setOnMarkerClickListener { marker ->
